@@ -1,0 +1,26 @@
+---
+# Triggers the workflow on push or delete events
+on:
+  schedule:
+    - cron: "0 7 3 * *"
+  workflow_dispatch:
+
+jobs:
+  invoice:
+    name: Fetch Redmine time entries and create an invoice.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout.
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+      - name: Setup PHP and tools
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8'
+          tools: composer:v2
+          extensions: mbstring, gd, intl, yaml, bcmath, curl
+      - name: Create the invoice
+        run: |
+          composer install --no-interaction
+          php bin/console sync ${{ vars.REDMINEDOMAIN }} ${{ secrets.REDMINEAPIKEY }} ${{ vars.REDMINEUSERID }} ${{ secrets.HOURLYRATE }} ${{ vars.VYFAKTURUJLOGIN }} ${{ secrets.VYFAKTURUJAPI }} -v
